@@ -75,15 +75,19 @@ interface AppContextType {
   toggleDocInCollection: (collectionId: string, docId: string) => void;
   recordQuizCompleted: (score: number) => void;
   
-  // Document Management (Teacher / Admin)
+  // Document Management & Approvals
   addDocument: (newDoc: Omit<DocumentItem, 'id' | 'createdAt' | 'updatedAt' | 'viewCount' | 'downloadCount' | 'likesCount' | 'rating'>) => void;
   updateDocumentStatus: (docId: string, status: DocumentItem['status']) => void;
+  approveDocument: (docId: string) => void;
+  rejectDocument: (docId: string, reason?: string) => void;
   deleteDocument: (docId: string) => void;
   incrementDownload: (docId: string) => void;
   incrementView: (docId: string) => void;
 
-  // Newsfeed Actions (Admin & Users)
+  // Newsfeed Actions & Approvals
   addPost: (newPostData: Partial<HistoryPost>) => void;
+  approvePost: (postId: string) => void;
+  rejectPost: (postId: string, reason?: string) => void;
   addComment: (postId: string, content: string) => void;
   toggleLikePost: (postId: string) => void;
   togglePinPost: (postId: string) => void;
@@ -122,6 +126,8 @@ interface AppContextType {
   setIsCreatePostModalOpen: (open: boolean) => void;
   isAdminUploadModalOpen: boolean;
   setIsAdminUploadModalOpen: (open: boolean) => void;
+  isMemberUploadModalOpen: boolean;
+  setIsMemberUploadModalOpen: (open: boolean) => void;
   isAIModalOpen: boolean;
   setIsAIModalOpen: (open: boolean) => void;
   aiPromptPreset: string;
@@ -274,6 +280,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
   const [isAdminUploadModalOpen, setIsAdminUploadModalOpen] = useState(false);
+  const [isMemberUploadModalOpen, setIsMemberUploadModalOpen] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [aiPromptPreset, setAiPromptPreset] = useState('');
   const [aiContextDoc, setAiContextDoc] = useState<DocumentItem | null>(null);
@@ -584,9 +591,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const addDocument = (
     newDoc: Omit<DocumentItem, 'id' | 'createdAt' | 'updatedAt' | 'viewCount' | 'downloadCount' | 'likesCount' | 'rating'>
   ) => {
+    const isAdmin = currentUser?.role === 'admin';
+    const targetStatus = isAdmin ? (newDoc.status || 'published') : 'pending';
+
     const created: DocumentItem = {
       ...newDoc,
       id: `doc_${Date.now()}`,
+      status: targetStatus,
+      authorId: newDoc.authorId || currentUser?.id || 'u_guest',
+      authorName: newDoc.authorName || currentUser?.name || 'Thành viên FPT',
+      authorRole: newDoc.authorRole || currentUser?.role || 'student',
+      authorAvatar: newDoc.authorAvatar || currentUser?.avatar,
       viewCount: 1,
       downloadCount: 0,
       likesCount: 0,
@@ -595,13 +610,47 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       updatedAt: new Date().toISOString().split('T')[0],
     };
     setDocuments((prev) => [created, ...prev]);
-    showToast('Tài liệu đã được tải lên và lưu vào cơ sở dữ liệu 🎉', 'success');
+    if (isAdmin) {
+      showToast('Tài liệu đã được xuất bản trực tiếp lên Thư viện 🎉', 'success');
+    } else {
+      showToast('Học liệu đã gửi thành công và đang chờ Quản trị viên phê duyệt ⏳', 'info');
+    }
   };
 
   const updateDocumentStatus = (docId: string, status: DocumentItem['status']) => {
     setDocuments((prev) =>
       prev.map((d) => (d.id === docId ? { ...d, status, updatedAt: new Date().toISOString().split('T')[0] } : d))
     );
+  };
+
+  const approveDocument = (docId: string) => {
+    if (currentUser?.role !== 'admin') {
+      showToast('Chỉ Quản trị viên mới có quyền phê duyệt tài liệu', 'error');
+      return;
+    }
+    setDocuments((prev) =>
+      prev.map((d) =>
+        d.id === docId
+          ? { ...d, status: 'published', rejectionReason: undefined, updatedAt: new Date().toISOString().split('T')[0] }
+          : d
+      )
+    );
+    showToast('Đã phê duyệt và xuất bản tài liệu lên Thư viện thành công! ✅', 'success');
+  };
+
+  const rejectDocument = (docId: string, reason: string = 'Nội dung học liệu chưa phù hợp hoặc thiếu thông tin kiểm chứng.') => {
+    if (currentUser?.role !== 'admin') {
+      showToast('Chỉ Quản trị viên mới có quyền từ chối tài liệu', 'error');
+      return;
+    }
+    setDocuments((prev) =>
+      prev.map((d) =>
+        d.id === docId
+          ? { ...d, status: 'rejected', rejectionReason: reason, updatedAt: new Date().toISOString().split('T')[0] }
+          : d
+      )
+    );
+    showToast('Đã từ chối tài liệu và gửi phản hồi đến thành viên ⚠️', 'warning');
   };
 
   const deleteDocument = (docId: string) => {
@@ -630,9 +679,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const addPost = (newPostData: Partial<HistoryPost>) => {
     requireAuth(() => {
+      const isAdmin = currentUser?.role === 'admin';
+      const targetStatus = isAdmin ? 'published' : 'pending';
+
       const newPost: HistoryPost = {
         id: `post_${Date.now()}`,
-        title: newPostData.title || 'Thông báo mới',
+        title: newPostData.title || 'Bài viết Lịch sử',
         content: newPostData.content || '',
         category: newPostData.category || 'discussion',
         authorId: currentUser?.id || 'u_guest',
@@ -646,13 +698,48 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         commentsCount: 0,
         viewsCount: 1,
         isPinned: false,
+        status: targetStatus,
         attachedDocIds: newPostData.attachedDocIds || [],
         createdAt: new Date().toISOString(),
         comments: [],
       };
       setPosts((prev) => [newPost, ...prev]);
-      showToast('Đã đăng bài viết thành công lên Bảng tin 🎉', 'success');
+      if (isAdmin) {
+        showToast('Bài viết đã được đăng trực tiếp lên Bảng tin 🎉', 'success');
+      } else {
+        showToast('Bài viết đã gửi thành công và đang chờ Quản trị viên duyệt ⏳', 'info');
+      }
     }, 'Vui lòng đăng nhập bằng Email để đăng bài viết mới lên Bảng tin.');
+  };
+
+  const approvePost = (postId: string) => {
+    if (currentUser?.role !== 'admin') {
+      showToast('Chỉ Quản trị viên mới có quyền phê duyệt bài viết', 'error');
+      return;
+    }
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId
+          ? { ...p, status: 'published', rejectionReason: undefined, updatedAt: new Date().toISOString() }
+          : p
+      )
+    );
+    showToast('Đã phê duyệt và hiển thị bài viết lên Diễn đàn thành công! ✅', 'success');
+  };
+
+  const rejectPost = (postId: string, reason: string = 'Nội dung bài viết chưa tuân thủ quy chế diễn đàn lịch sử.') => {
+    if (currentUser?.role !== 'admin') {
+      showToast('Chỉ Quản trị viên mới có quyền từ chối bài viết', 'error');
+      return;
+    }
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId
+          ? { ...p, status: 'rejected', rejectionReason: reason, updatedAt: new Date().toISOString() }
+          : p
+      )
+    );
+    showToast('Đã từ chối bài viết và ghi nhận lý do ⚠️', 'warning');
   };
 
   const addComment = (postId: string, content: string) => {
@@ -776,10 +863,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       recordQuizCompleted,
       addDocument,
       updateDocumentStatus,
+      approveDocument,
+      rejectDocument,
       deleteDocument,
       incrementDownload,
       incrementView,
       addPost,
+      approvePost,
+      rejectPost,
       addComment,
       toggleLikePost,
       togglePinPost,
@@ -813,6 +904,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setIsCreatePostModalOpen,
       isAdminUploadModalOpen,
       setIsAdminUploadModalOpen,
+      isMemberUploadModalOpen,
+      setIsMemberUploadModalOpen,
       isAIModalOpen,
       setIsAIModalOpen,
       aiPromptPreset,
@@ -849,6 +942,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       isProfileModalOpen,
       isCreatePostModalOpen,
       isAdminUploadModalOpen,
+      isMemberUploadModalOpen,
       isAIModalOpen,
       aiPromptPreset,
       aiContextDoc,

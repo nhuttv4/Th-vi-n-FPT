@@ -22,7 +22,8 @@ export type DifficultyLevel = 'basic' | 'medium' | 'good' | 'advanced';
 
 export type FileFormat = 'pdf' | 'docx' | 'pptx' | 'epub' | 'link';
 
-export type DocumentStatus = 'draft' | 'pending' | 'published' | 'hidden';
+export type DocumentStatus = 'draft' | 'pending' | 'published' | 'rejected' | 'hidden';
+export type PostStatus = 'pending' | 'published' | 'rejected' | 'hidden';
 
 export interface User {
   id: string;
@@ -66,7 +67,7 @@ export interface DocumentItem {
   difficulty: DifficultyLevel;
   authorId: string;
   authorName: string;
-  authorRole: 'teacher' | 'admin' | 'guest';
+  authorRole: UserRole;
   authorAvatar?: string;
   fileUrl: string;
   thumbnailUrl: string;
@@ -75,6 +76,7 @@ export interface DocumentItem {
   pagesCount: number;
   tags: string[];
   status: DocumentStatus;
+  rejectionReason?: string;
   viewCount: number;
   downloadCount: number;
   likesCount: number;
@@ -178,6 +180,8 @@ export interface HistoryPost {
   attachedDocIds?: string[];
   tags: string[];
   isPinned?: boolean;
+  status?: PostStatus;
+  rejectionReason?: string;
   likesCount: number;
   commentsCount: number;
   viewsCount: number;
