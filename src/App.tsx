@@ -8,6 +8,7 @@ import { Footer } from './components/layout/Footer';
 import { LandingPage } from './components/landing/LandingPage';
 import { StudentDashboard } from './components/dashboard/StudentDashboard';
 import { LibraryView } from './components/library/LibraryView';
+import { HistoryNewsfeedView } from './components/newsfeed/HistoryNewsfeedView';
 import { TimelineView } from './components/timeline/TimelineView';
 import { FeaturedCategoriesView } from './components/categories/FeaturedCategoriesView';
 import { PersonalLibraryView } from './components/personal/PersonalLibraryView';
@@ -22,6 +23,9 @@ import { DocumentDetailModal } from './components/library/DocumentDetailModal';
 import { DocumentReaderModal } from './components/reader/DocumentReaderModal';
 import { HistoryAIAssistantModal } from './components/ai/HistoryAIAssistantModal';
 import { InteractiveQuizModal } from './components/quiz/InteractiveQuizModal';
+import { CreatePostModal } from './components/newsfeed/CreatePostModal';
+import { PostDetailModal } from './components/newsfeed/PostDetailModal';
+import { AdminUploadDocumentModal } from './components/admin/AdminUploadDocumentModal';
 
 const AppContent: React.FC = () => {
   const { currentView } = useApp();
@@ -40,6 +44,9 @@ const AppContent: React.FC = () => {
         <DocumentReaderModal />
         <HistoryAIAssistantModal />
         <InteractiveQuizModal />
+        <CreatePostModal />
+        <PostDetailModal />
+        <AdminUploadDocumentModal />
       </div>
     );
   }
@@ -74,6 +81,7 @@ const AppContent: React.FC = () => {
           <main className="flex-1">
             {currentView === 'home' && <StudentDashboard />}
             {currentView === 'library' && <LibraryView />}
+            {currentView === 'newsfeed' && <HistoryNewsfeedView />}
             {currentView === 'timeline' && <TimelineView />}
             {currentView === 'categories' && <FeaturedCategoriesView />}
             {currentView === 'personal' && <PersonalLibraryView />}
@@ -94,6 +102,9 @@ const AppContent: React.FC = () => {
       <DocumentReaderModal />
       <HistoryAIAssistantModal />
       <InteractiveQuizModal />
+      <CreatePostModal />
+      <PostDetailModal />
+      <AdminUploadDocumentModal />
     </div>
   );
 };

@@ -13,6 +13,7 @@ import {
   User as UserIcon,
   Settings,
   BookOpen,
+  Mail,
 } from 'lucide-react';
 
 interface BentoHeaderProps {
@@ -23,6 +24,7 @@ export const BentoHeader: React.FC<BentoHeaderProps> = ({ onToggleMobileSidebar 
   const {
     currentUser,
     switchRole,
+    logoutUser,
     searchQuery,
     setSearchQuery,
     setCurrentView,
@@ -48,7 +50,7 @@ export const BentoHeader: React.FC<BentoHeaderProps> = ({ onToggleMobileSidebar 
       {/* Mobile hamburger button */}
       <button
         onClick={onToggleMobileSidebar}
-        className="md:hidden p-2.5 rounded-2xl bg-white border border-gray-200 text-[#002D56] shadow-xs"
+        className="md:hidden p-2.5 rounded-2xl bg-white border border-gray-200 text-[#002D56] shadow-xs cursor-pointer"
         aria-label="Mở menu"
       >
         <Menu className="w-5 h-5" />
@@ -132,7 +134,7 @@ export const BentoHeader: React.FC<BentoHeaderProps> = ({ onToggleMobileSidebar 
                     setIsProfileModalOpen(true);
                     setIsProfileDropdownOpen(false);
                   }}
-                  className="w-full px-4 py-2 text-left text-xs flex items-center space-x-2.5 hover:bg-orange-50 text-[#002D56] font-medium"
+                  className="w-full px-4 py-2 text-left text-xs flex items-center space-x-2.5 hover:bg-orange-50 text-[#002D56] font-medium cursor-pointer"
                 >
                   <Settings className="w-4 h-4 text-[#F37021]" />
                   <span>Hồ sơ & Đổi khối lớp / vai trò</span>
@@ -143,7 +145,7 @@ export const BentoHeader: React.FC<BentoHeaderProps> = ({ onToggleMobileSidebar 
                     setCurrentView('personal');
                     setIsProfileDropdownOpen(false);
                   }}
-                  className="w-full px-4 py-2 text-left text-xs flex items-center space-x-2.5 hover:bg-orange-50 text-[#002D56] font-medium"
+                  className="w-full px-4 py-2 text-left text-xs flex items-center space-x-2.5 hover:bg-orange-50 text-[#002D56] font-medium cursor-pointer"
                 >
                   <BookOpen className="w-4 h-4 text-blue-600" />
                   <span>Tài liệu & Ghi chú của tôi</span>
@@ -160,7 +162,7 @@ export const BentoHeader: React.FC<BentoHeaderProps> = ({ onToggleMobileSidebar 
                     switchRole('student');
                     setIsProfileDropdownOpen(false);
                   }}
-                  className="w-full px-4 py-1.5 text-left text-xs flex items-center space-x-2 hover:bg-gray-50 text-gray-700"
+                  className="w-full px-4 py-1.5 text-left text-xs flex items-center space-x-2 hover:bg-gray-50 text-gray-700 cursor-pointer"
                 >
                   <GraduationCap className="w-3.5 h-3.5 text-orange-500" />
                   <span>Học sinh</span>
@@ -170,7 +172,7 @@ export const BentoHeader: React.FC<BentoHeaderProps> = ({ onToggleMobileSidebar 
                     switchRole('teacher');
                     setIsProfileDropdownOpen(false);
                   }}
-                  className="w-full px-4 py-1.5 text-left text-xs flex items-center space-x-2 hover:bg-gray-50 text-gray-700"
+                  className="w-full px-4 py-1.5 text-left text-xs flex items-center space-x-2 hover:bg-gray-50 text-gray-700 cursor-pointer"
                 >
                   <UserCheck className="w-3.5 h-3.5 text-blue-600" />
                   <span>Giáo viên</span>
@@ -180,7 +182,7 @@ export const BentoHeader: React.FC<BentoHeaderProps> = ({ onToggleMobileSidebar 
                     switchRole('admin');
                     setIsProfileDropdownOpen(false);
                   }}
-                  className="w-full px-4 py-1.5 text-left text-xs flex items-center space-x-2 hover:bg-gray-50 text-gray-700"
+                  className="w-full px-4 py-1.5 text-left text-xs flex items-center space-x-2 hover:bg-gray-50 text-gray-700 cursor-pointer"
                 >
                   <ShieldAlert className="w-3.5 h-3.5 text-purple-600" />
                   <span>Quản trị viên</span>
@@ -190,10 +192,10 @@ export const BentoHeader: React.FC<BentoHeaderProps> = ({ onToggleMobileSidebar 
 
                 <button
                   onClick={() => {
-                    switchRole('guest');
+                    logoutUser();
                     setIsProfileDropdownOpen(false);
                   }}
-                  className="w-full px-4 py-2 text-left text-xs flex items-center space-x-2.5 hover:bg-red-50 text-red-600 font-medium"
+                  className="w-full px-4 py-2 text-left text-xs flex items-center space-x-2.5 hover:bg-red-50 text-red-600 font-medium cursor-pointer"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>Đăng xuất</span>
@@ -206,8 +208,8 @@ export const BentoHeader: React.FC<BentoHeaderProps> = ({ onToggleMobileSidebar 
             onClick={() => setIsAuthModalOpen(true)}
             className="flex items-center space-x-1.5 px-4 py-2 rounded-2xl bg-[#F37021] hover:bg-[#e06216] text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
           >
-            <LogIn className="w-3.5 h-3.5" />
-            <span>Đăng nhập</span>
+            <Mail className="w-3.5 h-3.5" />
+            <span>Đăng nhập Email</span>
           </button>
         )}
       </div>

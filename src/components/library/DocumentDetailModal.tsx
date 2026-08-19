@@ -16,10 +16,14 @@ import {
   HelpCircle,
   ShieldCheck,
   FolderPlus,
+  Lock,
+  ArrowRight,
+  ShieldAlert,
 } from 'lucide-react';
 
 export const DocumentDetailModal: React.FC = () => {
   const {
+    currentUser,
     activeDetailDoc,
     setActiveDetailDoc,
     setActiveReaderDoc,
@@ -31,6 +35,8 @@ export const DocumentDetailModal: React.FC = () => {
     setIsAIModalOpen,
     setAiPromptPreset,
     setAiContextDoc,
+    generateShareUrl,
+    requireAuth,
     showToast,
     collections,
     toggleDocInCollection,
@@ -41,6 +47,7 @@ export const DocumentDetailModal: React.FC = () => {
   if (!activeDetailDoc) return null;
 
   const isFav = isFavorite(activeDetailDoc.id);
+  const isGuest = !currentUser || currentUser.role === 'guest';
 
   // Related documents
   const relatedDocs = documents
@@ -52,30 +59,41 @@ export const DocumentDetailModal: React.FC = () => {
     .slice(0, 3);
 
   const handleShare = () => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href);
-      showToast('Đã sao chép liên kết tài liệu vào bộ nhớ tạm 🔗', 'success');
-    } else {
-      showToast('Liên kết tài liệu đã sẵn sàng để chia sẻ', 'info');
-    }
+    generateShareUrl('doc', activeDetailDoc.id);
+  };
+
+  const handleReadFull = () => {
+    requireAuth(() => {
+      setActiveReaderDoc(activeDetailDoc, 1);
+      setActiveDetailDoc(null);
+    }, `Vui lòng đăng nhập Email để đọc toàn bộ ${activeDetailDoc.pagesCount} trang tài liệu "${activeDetailDoc.title}".`);
+  };
+
+  const handleTakeQuiz = () => {
+    requireAuth(() => {
+      setActiveQuizDoc(activeDetailDoc);
+      setActiveDetailDoc(null);
+    }, `Vui lòng đăng nhập Email để làm bài tập trắc nghiệm và lưu kết quả.`);
   };
 
   const handleAskAI = () => {
-    setAiContextDoc(activeDetailDoc);
-    setAiPromptPreset(`Tóm tắt các ý chính và bài học lịch sử quan trọng trong tài liệu "${activeDetailDoc.title}"`);
-    setIsAIModalOpen(true);
+    requireAuth(() => {
+      setAiContextDoc(activeDetailDoc);
+      setAiPromptPreset(`Tóm tắt các ý chính và bài học lịch sử quan trọng trong tài liệu "${activeDetailDoc.title}"`);
+      setIsAIModalOpen(true);
+    }, `Vui lòng đăng nhập Email để sử dụng Trợ lý AI phân tích học liệu.`);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-in fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in">
       <div
         id="document-detail-modal"
-        className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[90vh] flex flex-col"
+        className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden my-auto max-h-[92vh] flex flex-col"
       >
         {/* Header bar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/80">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/80">
           <div className="flex items-center space-x-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-orange-100 text-orange-800 border border-orange-200">
+            <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-orange-100 text-[#F37021] border border-orange-200">
               {activeDetailDoc.type === 'exercise'
                 ? 'Bài tập'
                 : activeDetailDoc.type === 'outline'
@@ -84,53 +102,98 @@ export const DocumentDetailModal: React.FC = () => {
                 ? 'Đề thi'
                 : 'Ebook'}
             </span>
-            <span className="text-xs text-slate-500 font-medium">
-              {activeDetailDoc.grade === 'all' ? 'Toàn cấp THPT' : `Khối ${activeDetailDoc.grade}`}
+            <span className="text-xs text-gray-500 font-bold">
+              {['6', '7', '8', '9'].includes(activeDetailDoc.grade)
+                ? `THCS • Lớp ${activeDetailDoc.grade}`
+                : activeDetailDoc.grade === 'all'
+                ? 'Toàn cấp THCS & THPT'
+                : `THPT • Lớp ${activeDetailDoc.grade}`}
             </span>
           </div>
 
-          <button
-            id="close-detail-modal"
-            onClick={() => setActiveDetailDoc(null)}
-            className="p-1.5 rounded-full hover:bg-slate-200 text-slate-500 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handleShare}
+              className="p-2 rounded-xl bg-gray-100 hover:bg-orange-50 text-gray-600 hover:text-[#F37021] text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer"
+              title="Sao chép link chia sẻ yêu cầu đăng nhập Email"
+            >
+              <Share2 className="w-4 h-4" />
+              <span className="hidden sm:inline">Chia sẻ link</span>
+            </button>
+            <button
+              id="close-detail-modal"
+              onClick={() => setActiveDetailDoc(null)}
+              className="p-2 rounded-full hover:bg-gray-200 text-gray-500 transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
+        {/* Guest Lock Notification Banner */}
+        {isGuest && (
+          <div className="bg-amber-50 border-b border-amber-200 px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-amber-900">
+            <div className="flex items-center space-x-2">
+              <Lock className="w-4 h-4 text-amber-700 shrink-0" />
+              <span className="font-semibold">
+                Liên kết chia sẻ nội bộ: Bạn cần đăng nhập Email để mở khóa toàn bộ {activeDetailDoc.pagesCount} trang & tải tài liệu.
+              </span>
+            </div>
+            <button
+              onClick={() =>
+                requireAuth(
+                  () => {},
+                  `Đăng nhập Email để mở khóa học liệu "${activeDetailDoc.title}"`
+                )
+              }
+              className="px-3 py-1.5 bg-[#F37021] hover:bg-[#e06216] text-white font-bold rounded-xl text-xs shrink-0 self-start sm:self-auto cursor-pointer"
+            >
+              Đăng nhập bằng Email
+            </button>
+          </div>
+        )}
+
         {/* Modal Body */}
-        <div className="p-6 overflow-y-auto space-y-8 flex-1">
+        <div className="p-6 overflow-y-auto space-y-6 flex-1">
           {/* Top section: Cover & Main Info */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             {/* Cover Column */}
             <div className="md:col-span-4 flex flex-col items-center">
-              <div className="w-full aspect-3/4 rounded-2xl bg-slate-100 overflow-hidden shadow-md border border-slate-200 relative group">
+              <div className="w-full aspect-3/4 rounded-2xl bg-gray-100 overflow-hidden shadow-md border border-gray-100 relative group">
                 <img
                   src={activeDetailDoc.thumbnailUrl}
                   alt={activeDetailDoc.title}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-slate-900/80 text-white text-[11px] font-bold uppercase">
+                <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-[#002D56]/80 text-white text-[11px] font-bold uppercase backdrop-blur-xs">
                   {activeDetailDoc.fileType}
                 </div>
+                {isGuest && (
+                  <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-[2px] flex items-center justify-center">
+                    <div className="px-3 py-1.5 rounded-full bg-white/90 text-[#002D56] text-xs font-bold flex items-center space-x-1.5 shadow-md">
+                      <Lock className="w-3.5 h-3.5 text-[#F37021]" />
+                      <span>Xem trước</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Quick File Specs */}
-              <div className="w-full mt-4 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-1.5">
+              <div className="w-full mt-4 p-3.5 rounded-2xl bg-gray-50 border border-gray-100 text-xs text-gray-600 space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Định dạng:</span>
-                  <span className="font-semibold uppercase">{activeDetailDoc.fileType}</span>
+                  <span className="text-gray-400">Định dạng tệp:</span>
+                  <span className="font-bold uppercase text-[#002D56]">{activeDetailDoc.fileType}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Dung lượng:</span>
+                  <span className="text-gray-400">Dung lượng:</span>
                   <span className="font-semibold">{activeDetailDoc.fileSize}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Số trang:</span>
-                  <span className="font-semibold">{activeDetailDoc.pagesCount} trang</span>
+                  <span className="text-gray-400">Số trang học tập:</span>
+                  <span className="font-semibold text-[#002D56]">{activeDetailDoc.pagesCount} trang</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Lượt tải:</span>
+                  <span className="text-gray-400">Lượt tải:</span>
                   <span className="font-semibold">{activeDetailDoc.downloadCount.toLocaleString()}</span>
                 </div>
               </div>
@@ -139,202 +202,124 @@ export const DocumentDetailModal: React.FC = () => {
             {/* Info Column */}
             <div className="md:col-span-8 space-y-4 flex flex-col justify-between">
               <div className="space-y-3">
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 leading-snug">
+                <div className="flex items-center space-x-2 text-xs text-gray-400">
+                  <span className="font-medium text-[#002D56]">Tác giả: {activeDetailDoc.authorName}</span>
+                  <span>•</span>
+                  <span>Ngày đăng: {activeDetailDoc.createdAt}</span>
+                </div>
+
+                <h1 className="text-xl sm:text-2xl font-extrabold text-[#002D56] leading-snug">
                   {activeDetailDoc.title}
-                </h2>
+                </h1>
 
-                {/* Author & Meta */}
-                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                  <div className="flex items-center space-x-1.5 font-medium text-slate-800">
-                    <User className="w-3.5 h-3.5 text-orange-500" />
-                    <span>{activeDetailDoc.authorName}</span>
-                  </div>
-                  <span>•</span>
-                  <div className="flex items-center space-x-1">
-                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Cập nhật: {activeDetailDoc.updatedAt}</span>
-                  </div>
-                  <span>•</span>
-                  <div className="flex items-center space-x-1 text-emerald-600 font-semibold">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Đã kiểm duyệt</span>
-                  </div>
-                </div>
-
-                {/* Description */}
-                <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-100 text-slate-700 text-xs sm:text-sm leading-relaxed">
-                  <p className="font-medium text-slate-900 mb-1">Mô tả tài liệu:</p>
+                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                   {activeDetailDoc.description}
-                </div>
+                </p>
 
                 {/* Tags */}
                 <div className="flex flex-wrap gap-1.5 pt-1">
-                  {activeDetailDoc.tags.map((tag) => (
+                  {activeDetailDoc.tags.map((t, idx) => (
                     <span
-                      key={tag}
-                      className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 font-medium"
+                      key={idx}
+                      className="px-2.5 py-0.5 rounded-lg bg-gray-100 text-gray-600 text-[11px] font-semibold"
                     >
-                      #{tag}
+                      #{t}
                     </span>
                   ))}
                 </div>
+
+                {/* Table of contents preview */}
+                {activeDetailDoc.tableOfContents && activeDetailDoc.tableOfContents.length > 0 && (
+                  <div className="pt-2">
+                    <h3 className="text-xs font-bold text-[#002D56] uppercase tracking-wider mb-2 flex items-center space-x-1.5">
+                      <ListOrdered className="w-3.5 h-3.5 text-[#F37021]" />
+                      <span>Mục lục nội dung chính:</span>
+                    </h3>
+                    <div className="space-y-1 bg-gray-50 p-3 rounded-2xl border border-gray-100 text-xs">
+                      {activeDetailDoc.tableOfContents.slice(0, 3).map((toc, i) => (
+                        <div key={i} className="flex justify-between text-gray-600 py-0.5">
+                          <span className="font-medium truncate pr-2">{i + 1}. {toc.title}</span>
+                          <span className="text-gray-400 font-mono text-[10px]">Trang {toc.page}</span>
+                        </div>
+                      ))}
+                      {activeDetailDoc.tableOfContents.length > 3 && (
+                        <div className="text-[10px] text-gray-400 pt-1 text-center font-medium">
+                          + và {activeDetailDoc.tableOfContents.length - 3} phần kiến thức khác
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Action Buttons */}
-              <div className="space-y-2.5 pt-4 border-t border-slate-200">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  {/* Read */}
+              <div className="space-y-2.5 pt-4 border-t border-gray-100">
+                <div className="flex flex-wrap gap-2.5">
                   <button
-                    id="modal-read-doc-btn"
-                    onClick={() => {
-                      setActiveReaderDoc(activeDetailDoc);
-                      setActiveDetailDoc(null);
-                    }}
-                    className="py-2.5 px-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 shadow-md shadow-orange-500/20 transition-all"
+                    onClick={handleReadFull}
+                    className="flex-1 min-w-[140px] py-3 px-4 rounded-2xl bg-[#002D56] hover:bg-[#002242] text-white font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 shadow-md transition-all cursor-pointer"
                   >
                     <BookOpen className="w-4 h-4" />
-                    <span>Đọc tài liệu</span>
+                    <span>Đọc toàn bộ tài liệu</span>
                   </button>
 
-                  {/* Practice Quiz */}
                   {activeDetailDoc.sampleQuestions && activeDetailDoc.sampleQuestions.length > 0 && (
                     <button
-                      id="modal-quiz-btn"
-                      onClick={() => {
-                        setActiveQuizDoc(activeDetailDoc);
-                        setActiveDetailDoc(null);
-                      }}
-                      className="py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 transition-all"
+                      onClick={handleTakeQuiz}
+                      className="py-3 px-4 rounded-2xl bg-orange-50 hover:bg-orange-100 text-[#F37021] font-bold text-xs sm:text-sm flex items-center space-x-2 border border-orange-200 transition-all cursor-pointer"
                     >
-                      <HelpCircle className="w-4 h-4 text-orange-400" />
+                      <CheckCircle2 className="w-4 h-4" />
                       <span>Làm trắc nghiệm</span>
                     </button>
                   )}
 
-                  {/* Download */}
                   <button
-                    id="modal-download-btn"
                     onClick={() => incrementDownload(activeDetailDoc.id)}
-                    className="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs sm:text-sm flex items-center justify-center space-x-2 transition-all"
+                    className="py-3 px-4 rounded-2xl border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold text-xs sm:text-sm flex items-center space-x-2 transition-all cursor-pointer"
                   >
                     <Download className="w-4 h-4" />
-                    <span>Tải xuống</span>
+                    <span>Tải về</span>
                   </button>
-                </div>
 
-                {/* Secondary tools: Favorite, Collection, Share, Ask AI */}
-                <div className="flex flex-wrap items-center gap-2 pt-1">
                   <button
                     onClick={() => toggleFavorite(activeDetailDoc.id)}
-                    className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 border transition-all ${
+                    className={`p-3 rounded-2xl border transition-all cursor-pointer ${
                       isFav
                         ? 'bg-rose-50 border-rose-200 text-rose-600'
-                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                        : 'border-gray-200 hover:bg-gray-50 text-gray-500'
                     }`}
+                    title={isFav ? 'Đã yêu thích' : 'Thêm vào yêu thích'}
                   >
-                    <Bookmark className="w-3.5 h-3.5" />
-                    <span>{isFav ? 'Đã yêu thích' : 'Lưu yêu thích'}</span>
+                    <Bookmark className="w-4 h-4" />
                   </button>
-
-                  <div className="relative">
-                    <button
-                      onClick={() => setIsCollectionPickerOpen(!isCollectionPickerOpen)}
-                      className="px-3 py-2 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center space-x-1.5"
-                    >
-                      <FolderPlus className="w-3.5 h-3.5 text-orange-500" />
-                      <span>Thêm vào Tủ sách</span>
-                    </button>
-
-                    {isCollectionPickerOpen && (
-                      <div className="absolute left-0 bottom-full mb-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 p-2 z-50">
-                        <div className="text-[11px] font-bold text-slate-400 uppercase px-2 py-1">
-                          Chọn bộ sưu tập
-                        </div>
-                        {collections.map((col) => {
-                          const isInCol = col.documentIds.includes(activeDetailDoc.id);
-                          return (
-                            <button
-                              key={col.id}
-                              onClick={() => toggleDocInCollection(col.id, activeDetailDoc.id)}
-                              className="w-full text-left px-2 py-1.5 text-xs rounded-lg hover:bg-orange-50 flex items-center justify-between"
-                            >
-                              <span>
-                                {col.icon} {col.name}
-                              </span>
-                              {isInCol && <CheckCircle2 className="w-3.5 h-3.5 text-orange-600" />}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
 
                   <button
                     onClick={handleAskAI}
-                    className="px-3 py-2 rounded-xl text-xs font-semibold bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 flex items-center space-x-1.5"
+                    className="p-3 rounded-2xl bg-gradient-to-tr from-[#F37021] to-amber-500 text-white shadow-md hover:scale-105 transition-all cursor-pointer"
+                    title="Hỏi AI Tutor về tài liệu này"
                   >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>Hỏi AI về tài liệu</span>
-                  </button>
-
-                  <button
-                    onClick={handleShare}
-                    className="px-3 py-2 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center space-x-1.5"
-                  >
-                    <Share2 className="w-3.5 h-3.5" />
-                    <span>Chia sẻ</span>
+                    <Sparkles className="w-4 h-4" />
                   </button>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Table of Contents Preview (if available) */}
-          {activeDetailDoc.tableOfContents && activeDetailDoc.tableOfContents.length > 0 && (
-            <div className="space-y-3 pt-4 border-t border-slate-200">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-2">
-                <ListOrdered className="w-4 h-4 text-orange-500" />
-                <span>Mục lục nội dung tài liệu</span>
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {activeDetailDoc.tableOfContents.map((toc, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setActiveReaderDoc(activeDetailDoc, toc.page);
-                      setActiveDetailDoc(null);
-                    }}
-                    className="text-left p-3 rounded-xl bg-slate-50 hover:bg-orange-50/70 border border-slate-200/80 text-xs text-slate-800 flex items-center justify-between transition-colors group"
-                  >
-                    <span className="font-medium group-hover:text-orange-600 truncate mr-2">{toc.title}</span>
-                    <span className="text-slate-400 font-mono text-[11px] shrink-0">Trang {toc.page}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Related Documents */}
+          {/* Related Documents Subgrid */}
           {relatedDocs.length > 0 && (
-            <div className="space-y-3 pt-4 border-t border-slate-200">
-              <h3 className="text-sm font-bold text-slate-900">Tài liệu cùng chủ đề</h3>
+            <div className="pt-4 border-t border-gray-100 space-y-3">
+              <h3 className="font-bold text-xs sm:text-sm text-[#002D56]">Học liệu liên quan khác:</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {relatedDocs.map((doc) => (
                   <div
                     key={doc.id}
                     onClick={() => setActiveDetailDoc(doc)}
-                    className="p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 cursor-pointer transition-all flex items-center space-x-3 group"
+                    className="p-3 rounded-2xl bg-gray-50 hover:bg-orange-50/50 border border-gray-100 cursor-pointer transition-all flex items-center space-x-3"
                   >
-                    <img
-                      src={doc.thumbnailUrl}
-                      alt={doc.title}
-                      className="w-12 h-14 object-cover rounded-lg shrink-0"
-                    />
+                    <img src={doc.thumbnailUrl} alt={doc.title} className="w-10 h-12 object-cover rounded-xl shrink-0" />
                     <div className="min-w-0">
-                      <h4 className="text-xs font-bold text-slate-900 group-hover:text-orange-600 truncate">
-                        {doc.title}
-                      </h4>
-                      <p className="text-[11px] text-slate-500 mt-0.5">{doc.grade === 'all' ? 'Toàn cấp' : `Lớp ${doc.grade}`}</p>
+                      <p className="font-bold text-xs text-[#002D56] truncate">{doc.title}</p>
+                      <p className="text-[10px] text-gray-400">Lớp {doc.grade} • {doc.pagesCount} trang</p>
                     </div>
                   </div>
                 ))}

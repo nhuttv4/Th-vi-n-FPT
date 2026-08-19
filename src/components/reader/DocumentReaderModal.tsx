@@ -20,10 +20,12 @@ import {
   MessageSquare,
   Share2,
   Plus,
+  Lock,
 } from 'lucide-react';
 
 export const DocumentReaderModal: React.FC = () => {
   const {
+    currentUser,
     activeReaderDoc,
     setActiveReaderDoc,
     readerInitialPage,
@@ -33,6 +35,8 @@ export const DocumentReaderModal: React.FC = () => {
     setIsAIModalOpen,
     setAiPromptPreset,
     setAiContextDoc,
+    generateShareUrl,
+    requireAuth,
     showToast,
   } = useApp();
 
@@ -53,9 +57,17 @@ export const DocumentReaderModal: React.FC = () => {
 
   if (!activeReaderDoc) return null;
 
+  const isGuest = !currentUser || currentUser.role === 'guest';
   const totalPages = activeReaderDoc.pagesCount || 10;
 
   const handleNextPage = () => {
+    if (isGuest && currentPage >= 1) {
+      requireAuth(
+        () => setCurrentPage(2),
+        `Đăng nhập bằng Email để mở khóa toàn bộ ${totalPages} trang của tài liệu "${activeReaderDoc.title}".`
+      );
+      return;
+    }
     if (currentPage < totalPages) {
       const next = currentPage + 1;
       setCurrentPage(next);
@@ -72,21 +84,29 @@ export const DocumentReaderModal: React.FC = () => {
   };
 
   const handleSaveNoteBookmark = () => {
-    if (!noteInput.trim()) {
-      showToast('Vui lòng nhập ghi chú', 'warning');
-      return;
-    }
-    addBookmark(activeReaderDoc.id, currentPage, noteInput.trim());
-    setNoteInput('');
-    setIsAddingNote(false);
+    requireAuth(() => {
+      if (!noteInput.trim()) {
+        showToast('Vui lòng nhập ghi chú', 'warning');
+        return;
+      }
+      addBookmark(activeReaderDoc.id, currentPage, noteInput.trim());
+      setNoteInput('');
+      setIsAddingNote(false);
+    }, 'Vui lòng đăng nhập Email để lưu ghi chú bài học.');
   };
 
   const handleAskAIAboutPage = () => {
-    setAiContextDoc(activeReaderDoc);
-    setAiPromptPreset(
-      `Giải thích chi tiết các nội dung và câu hỏi lịch sử ở trang ${currentPage} của tài liệu "${activeReaderDoc.title}"`
-    );
-    setIsAIModalOpen(true);
+    requireAuth(() => {
+      setAiContextDoc(activeReaderDoc);
+      setAiPromptPreset(
+        `Giải thích chi tiết các nội dung và câu hỏi lịch sử ở trang ${currentPage} của tài liệu "${activeReaderDoc.title}"`
+      );
+      setIsAIModalOpen(true);
+    }, 'Vui lòng đăng nhập Email để sử dụng Trợ lý AI.');
+  };
+
+  const handleShare = () => {
+    generateShareUrl('doc', activeReaderDoc.id);
   };
 
   const currentDocBookmarks = bookmarks.filter((b) => b.documentId === activeReaderDoc.id);
@@ -106,147 +126,101 @@ export const DocumentReaderModal: React.FC = () => {
       }`}
     >
       {/* Top Navigation Toolbar */}
-      <header className="h-14 px-4 bg-slate-900 text-white border-b border-slate-800 flex items-center justify-between z-10 shrink-0">
+      <header className="h-14 px-4 bg-[#002D56] text-white border-b border-white/10 flex items-center justify-between z-10 shrink-0">
         {/* Left: Doc title & Back */}
         <div className="flex items-center space-x-3 max-w-md truncate">
           <button
             id="close-reader-btn"
             onClick={() => setActiveReaderDoc(null)}
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+            className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
             title="Đóng trình đọc"
           >
             <X className="w-5 h-5" />
           </button>
           <div className="min-w-0">
-            <h2 className="text-xs sm:text-sm font-bold truncate text-slate-100">{activeReaderDoc.title}</h2>
-            <p className="text-[11px] text-orange-400 truncate">
-              {activeReaderDoc.fileType.toUpperCase()} • Lớp {activeReaderDoc.grade} • {activeReaderDoc.authorName}
-            </p>
+            <h2 className="text-xs sm:text-sm font-bold truncate">{activeReaderDoc.title}</h2>
+            <div className="flex items-center space-x-2 text-[10px] text-blue-200">
+              <span>Khối {activeReaderDoc.grade}</span>
+              <span>•</span>
+              <span>{activeReaderDoc.fileType.toUpperCase()}</span>
+              {isGuest && (
+                <span className="px-1.5 py-0.2 bg-[#F37021] text-white rounded font-bold uppercase text-[9px]">
+                  Bản xem trước
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Center: Page Controls */}
-        <div className="flex items-center space-x-2 bg-slate-800/80 px-2 py-1 rounded-xl border border-slate-700 text-xs">
+        {/* Center: Pagination controls */}
+        <div className="hidden sm:flex items-center space-x-2 bg-white/10 px-3 py-1 rounded-xl text-xs">
           <button
-            id="reader-prev-page"
             onClick={handlePrevPage}
             disabled={currentPage <= 1}
-            className="p-1 rounded text-slate-300 hover:text-white disabled:opacity-30"
+            className="p-1 rounded hover:bg-white/20 disabled:opacity-30 cursor-pointer"
+            title="Trang trước"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-
-          <span className="font-mono font-medium px-1">
-            Trang <span className="text-orange-400 font-bold">{currentPage}</span> / {totalPages}
+          <span className="font-bold text-white px-2">
+            Trang {currentPage} / {totalPages}
           </span>
-
           <button
-            id="reader-next-page"
             onClick={handleNextPage}
-            disabled={currentPage >= totalPages}
-            className="p-1 rounded text-slate-300 hover:text-white disabled:opacity-30"
+            disabled={!isGuest && currentPage >= totalPages}
+            className="p-1 rounded hover:bg-white/20 disabled:opacity-30 cursor-pointer"
+            title="Trang sau"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Right: Tools & Settings */}
-        <div className="flex items-center space-x-1.5 sm:space-x-2 text-xs">
-          {/* Zoom */}
-          <div className="hidden sm:flex items-center space-x-1 bg-slate-800 px-2 py-1 rounded-lg">
-            <button
-              onClick={() => setZoomLevel((z) => Math.max(70, z - 15))}
-              className="text-slate-300 hover:text-white p-0.5"
-              title="Thu nhỏ"
-            >
-              <ZoomOut className="w-3.5 h-3.5" />
-            </button>
-            <span className="font-mono text-[11px] px-1 text-slate-300">{zoomLevel}%</span>
-            <button
-              onClick={() => setZoomLevel((z) => Math.min(150, z + 15))}
-              className="text-slate-300 hover:text-white p-0.5"
-              title="Phóng to"
-            >
-              <ZoomIn className="w-3.5 h-3.5" />
-            </button>
-          </div>
+        {/* Right: Tools & Sharing */}
+        <div className="flex items-center space-x-1.5">
+          <button
+            onClick={handleShare}
+            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+            title="Chia sẻ liên kết tài liệu"
+          >
+            <Share2 className="w-4 h-4" />
+          </button>
 
-          {/* Theme switcher */}
-          <div className="flex items-center bg-slate-800 p-0.5 rounded-lg">
-            <button
-              onClick={() => setThemeMode('light')}
-              className={`p-1 rounded ${themeMode === 'light' ? 'bg-orange-500 text-white' : 'text-slate-400'}`}
-              title="Giao diện Sáng"
-            >
-              <Sun className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => setThemeMode('sepia')}
-              className={`px-1.5 py-0.5 rounded font-serif text-xs ${
-                themeMode === 'sepia' ? 'bg-amber-600 text-white' : 'text-slate-400'
-              }`}
-              title="Giao diện Đọc sách (Sepia)"
-            >
-              A
-            </button>
-            <button
-              onClick={() => setThemeMode('dark')}
-              className={`p-1 rounded ${themeMode === 'dark' ? 'bg-slate-700 text-white' : 'text-slate-400'}`}
-              title="Giao diện Tối"
-            >
-              <Moon className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {/* AI Helper Button */}
           <button
             onClick={handleAskAIAboutPage}
-            className="px-2.5 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-semibold flex items-center space-x-1 shadow-xs transition-colors"
+            className="px-2.5 py-1.5 rounded-xl bg-gradient-to-tr from-[#F37021] to-amber-500 text-white font-bold text-xs flex items-center space-x-1 shadow-md hover:scale-105 transition-all cursor-pointer"
+            title="Hỏi AI phân tích trang này"
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Hỏi AI trang này</span>
+            <span className="hidden md:inline">Hỏi AI</span>
+          </button>
+
+          <button
+            onClick={() => setSidebarTab(sidebarTab === 'toc' ? null : 'toc')}
+            className={`p-2 rounded-xl transition-colors cursor-pointer ${
+              sidebarTab === 'toc' ? 'bg-[#F37021] text-white' : 'bg-white/10 hover:bg-white/20 text-white'
+            }`}
+            title="Mục lục"
+          >
+            <ListOrdered className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={() => setSidebarTab(sidebarTab === 'bookmarks' ? null : 'bookmarks')}
+            className={`p-2 rounded-xl transition-colors cursor-pointer ${
+              sidebarTab === 'bookmarks' ? 'bg-[#F37021] text-white' : 'bg-white/10 hover:bg-white/20 text-white'
+            }`}
+            title="Ghi chú & Bookmark"
+          >
+            <Bookmark className="w-4 h-4" />
           </button>
         </div>
       </header>
 
       {/* Main Body */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Sidebar Drawer (TOC, Notes, Search) */}
-        <aside className="w-12 bg-slate-900 border-r border-slate-800 flex flex-col items-center py-4 space-y-3 z-10 shrink-0">
-          <button
-            onClick={() => setSidebarTab(sidebarTab === 'toc' ? null : 'toc')}
-            className={`p-2 rounded-xl transition-colors ${
-              sidebarTab === 'toc' ? 'bg-orange-500 text-white' : 'text-slate-400 hover:text-white'
-            }`}
-            title="Mục lục tài liệu"
-          >
-            <ListOrdered className="w-5 h-5" />
-          </button>
-
-          <button
-            onClick={() => setSidebarTab(sidebarTab === 'bookmarks' ? null : 'bookmarks')}
-            className={`p-2 rounded-xl transition-colors ${
-              sidebarTab === 'bookmarks' ? 'bg-orange-500 text-white' : 'text-slate-400 hover:text-white'
-            }`}
-            title="Ghi chú & Bookmark"
-          >
-            <Bookmark className="w-5 h-5" />
-          </button>
-
-          <button
-            onClick={() => setSidebarTab(sidebarTab === 'search' ? null : 'search')}
-            className={`p-2 rounded-xl transition-colors ${
-              sidebarTab === 'search' ? 'bg-orange-500 text-white' : 'text-slate-400 hover:text-white'
-            }`}
-            title="Tìm kiếm trong tài liệu"
-          >
-            <Search className="w-5 h-5" />
-          </button>
-        </aside>
-
-        {/* Sidebar Expansion Panel */}
+        {/* Sidebar Drawer */}
         {sidebarTab && (
-          <div className="w-72 sm:w-80 bg-slate-800 text-slate-100 border-r border-slate-700 p-4 overflow-y-auto space-y-4 shrink-0 animate-in slide-in-from-left duration-200">
+          <div className="w-72 bg-slate-800 text-white border-r border-slate-700 p-4 overflow-y-auto shrink-0 animate-in slide-in-from-left duration-200">
             {sidebarTab === 'toc' && (
               <div className="space-y-3">
                 <h3 className="font-bold text-sm text-orange-400 flex items-center space-x-1.5">
@@ -258,10 +232,16 @@ export const DocumentReaderModal: React.FC = () => {
                     {activeReaderDoc.tableOfContents.map((toc, idx) => (
                       <button
                         key={idx}
-                        onClick={() => setCurrentPage(toc.page)}
-                        className={`w-full text-left p-2 rounded-lg text-xs transition-colors flex items-center justify-between ${
+                        onClick={() => {
+                          if (isGuest && toc.page > 1) {
+                            requireAuth(() => setCurrentPage(toc.page), `Đăng nhập Email để xem trang ${toc.page}`);
+                          } else {
+                            setCurrentPage(toc.page);
+                          }
+                        }}
+                        className={`w-full text-left p-2 rounded-xl text-xs transition-colors flex items-center justify-between cursor-pointer ${
                           currentPage === toc.page
-                            ? 'bg-orange-500 text-white font-bold'
+                            ? 'bg-[#F37021] text-white font-bold'
                             : 'hover:bg-slate-700 text-slate-300'
                         }`}
                       >
@@ -284,8 +264,10 @@ export const DocumentReaderModal: React.FC = () => {
                     <span>Ghi chú & Đánh dấu</span>
                   </h3>
                   <button
-                    onClick={() => setIsAddingNote(true)}
-                    className="p-1 rounded bg-orange-500 text-white hover:bg-orange-600"
+                    onClick={() => {
+                      requireAuth(() => setIsAddingNote(true), 'Đăng nhập Email để tạo ghi chú');
+                    }}
+                    className="p-1 rounded-lg bg-[#F37021] text-white hover:bg-[#e06216] cursor-pointer"
                     title="Thêm ghi chú tại trang này"
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -298,19 +280,19 @@ export const DocumentReaderModal: React.FC = () => {
                     <textarea
                       value={noteInput}
                       onChange={(e) => setNoteInput(e.target.value)}
-                      placeholder="Nhập nội dung cần ghi nhớ, trọng tâm thi..."
-                      className="w-full p-2 bg-slate-800 text-white rounded-lg text-xs border border-slate-600 focus:outline-none focus:border-orange-500 h-20"
+                      placeholder="Nhập nội dung cần ghi nhớ..."
+                      className="w-full p-2 bg-slate-900 text-white rounded-lg text-xs border border-slate-600 focus:outline-none focus:border-[#F37021] h-20"
                     />
                     <div className="flex justify-end space-x-2">
                       <button
                         onClick={() => setIsAddingNote(false)}
-                        className="px-2.5 py-1 text-xs text-slate-300 hover:text-white"
+                        className="px-2.5 py-1 text-xs text-slate-300 hover:text-white cursor-pointer"
                       >
                         Hủy
                       </button>
                       <button
                         onClick={handleSaveNoteBookmark}
-                        className="px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-md"
+                        className="px-3 py-1 bg-[#F37021] hover:bg-[#e06216] text-white text-xs font-semibold rounded-lg cursor-pointer"
                       >
                         Lưu ghi chú
                       </button>
@@ -339,38 +321,6 @@ export const DocumentReaderModal: React.FC = () => {
                 </div>
               </div>
             )}
-
-            {sidebarTab === 'search' && (
-              <div className="space-y-3">
-                <h3 className="font-bold text-sm text-orange-400 flex items-center space-x-1.5">
-                  <Search className="w-4 h-4" />
-                  <span>Tìm trong tài liệu</span>
-                </h3>
-                <input
-                  type="text"
-                  value={searchInDoc}
-                  onChange={(e) => setSearchInDoc(e.target.value)}
-                  placeholder="Nhập từ khóa tìm kiếm..."
-                  className="w-full p-2 text-xs bg-slate-700 text-white rounded-lg border border-slate-600 focus:outline-none focus:ring-1 focus:ring-orange-500"
-                />
-                <div className="text-[11px] text-slate-400">
-                  {searchInDoc ? (
-                    <div className="space-y-1.5 pt-2">
-                      <div className="p-2 rounded bg-slate-700/60 cursor-pointer hover:bg-slate-700 text-slate-200">
-                        <span className="text-orange-400 font-bold">Trang 1:</span> "...tóm tắt nguyên nhân bùng nổ{' '}
-                        <mark className="bg-orange-500 text-white px-0.5 rounded">{searchInDoc}</mark>..."
-                      </div>
-                      <div className="p-2 rounded bg-slate-700/60 cursor-pointer hover:bg-slate-700 text-slate-200">
-                        <span className="text-orange-400 font-bold">Trang 2:</span> "...ý nghĩa lịch sử và tác động của{' '}
-                        <mark className="bg-orange-500 text-white px-0.5 rounded">{searchInDoc}</mark> đối với cách mạng..."
-                      </div>
-                    </div>
-                  ) : (
-                    'Nhập cụm từ để tra cứu trực tiếp trong trang tài liệu.'
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         )}
 
@@ -379,17 +329,17 @@ export const DocumentReaderModal: React.FC = () => {
           <div
             id="reader-page-sheet"
             style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top center' }}
-            className={`w-full max-w-3xl rounded-2xl p-8 sm:p-12 shadow-2xl border transition-all duration-150 min-h-[750px] ${themeClasses[themeMode]}`}
+            className={`w-full max-w-3xl rounded-3xl p-8 sm:p-12 shadow-2xl border transition-all duration-150 min-h-[750px] relative ${themeClasses[themeMode]}`}
           >
             {/* Header of the page */}
             <div className="border-b border-dashed pb-4 mb-6 flex justify-between items-center text-xs opacity-60">
-              <span className="font-semibold uppercase tracking-wider">FPT History Library • THPT</span>
+              <span className="font-bold uppercase tracking-wider text-[#002D56]">FPT History Library • THCS & THPT</span>
               <span>Trang {currentPage} / {totalPages}</span>
             </div>
 
             {/* Document Rendered Content */}
             <div className="space-y-6 text-sm sm:text-base leading-relaxed font-serif">
-              <h1 className="text-xl sm:text-2xl font-bold font-sans tracking-tight text-orange-600">
+              <h1 className="text-xl sm:text-2xl font-extrabold font-sans tracking-tight text-[#002D56]">
                 {activeReaderDoc.tableOfContents && activeReaderDoc.tableOfContents[currentPage - 1]?.title
                   ? activeReaderDoc.tableOfContents[currentPage - 1].title
                   : `Phần ${currentPage}: ${activeReaderDoc.title}`}
@@ -397,20 +347,22 @@ export const DocumentReaderModal: React.FC = () => {
 
               <p>
                 Lịch sử là dòng chảy liên tục của các sự kiện, quá trình vận động và phát triển của xã hội loài người. Trong
-                chương trình Lịch sử THPT theo định hướng phát triển năng lực (GDPT 2018), việc nắm vững bối cảnh, diễn biến
-                và bản chất của các sự kiện là chìa khóa giúp học sinh tư duy phản biện và đạt kết quả cao.
+                chương trình Lịch sử theo định hướng phát triển phẩm chất và năng lực (GDPT 2018), việc nắm vững bối cảnh,
+                diễn biến và bản chất của các sự kiện là chìa khóa giúp học sinh FPT tư duy phản biện và đạt kết quả cao.
               </p>
 
               {/* Highlight callout box */}
-              <div className="p-4 rounded-xl bg-orange-500/10 border-l-4 border-orange-500 my-4 text-sm font-sans space-y-1">
-                <div className="font-bold text-orange-600 uppercase text-xs tracking-wider">Trọng tâm kiến thức cần ghi nhớ:</div>
-                <p className="italic">
+              <div className="p-4 rounded-2xl bg-orange-50 border-l-4 border-[#F37021] my-4 text-sm font-sans space-y-1">
+                <div className="font-extrabold text-[#F37021] uppercase text-xs tracking-wider">
+                  Trọng tâm kiến thức cần ghi nhớ:
+                </div>
+                <p className="italic text-gray-700">
                   "Sự kiện có ý nghĩa quyết định cục diện chiến trường, đánh dấu bước ngoặt chuyển từ thế phòng ngự sang thế
-                  tiến công chiến lược, tạo tiền đề vững chắc cho thắng lợi trọn vẹn."
+                  tiến công chiến lược, tạo tiền đề vững chắc cho thắng lợi trọn vẹn của dân tộc."
                 </p>
               </div>
 
-              <h2 className="text-lg font-bold font-sans text-slate-800 dark:text-slate-200 pt-2">
+              <h2 className="text-lg font-bold font-sans text-[#002D56] pt-2">
                 1. Bối cảnh lịch sử và nguyên nhân
               </h2>
               <p>
@@ -419,62 +371,66 @@ export const DocumentReaderModal: React.FC = () => {
                 lịch sử nghìn năm có một.
               </p>
 
-              <h2 className="text-lg font-bold font-sans text-slate-800 dark:text-slate-200 pt-2">
+              <h2 className="text-lg font-bold font-sans text-[#002D56] pt-2">
                 2. Diễn biến then chốt & Nghệ thuật quân sự
               </h2>
               <p>
                 Phương châm tác chiến được điều chỉnh linh hoạt, kết hợp chặt chẽ giữa tiến công quân sự và nổi dậy của quần
                 chúng nhân dân. Tinh thần đoàn kết keo sơn đã trở thành sức mạnh vô địch, đập tan mọi âm mưu của đối phương.
               </p>
-
-              {/* Sample questions inside the document */}
-              {activeReaderDoc.sampleQuestions && activeReaderDoc.sampleQuestions.length > 0 && (
-                <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700 font-sans">
-                  <h3 className="text-sm font-bold text-orange-600 uppercase tracking-wide mb-3">
-                    Câu hỏi ôn tập & củng cố kiến thức:
-                  </h3>
-                  <div className="p-4 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 text-xs sm:text-sm space-y-2">
-                    <p className="font-semibold">
-                      Câu 1: {activeReaderDoc.sampleQuestions[0].question}
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-xs">
-                      {activeReaderDoc.sampleQuestions[0].options.map((opt, i) => (
-                        <div key={i} className="p-2 rounded bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600">
-                          {String.fromCharCode(65 + i)}. {opt}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
+
+            {/* If guest and page > 1: Lock overlay */}
+            {isGuest && currentPage > 1 && (
+              <div className="absolute inset-0 bg-white/90 backdrop-blur-md rounded-3xl flex flex-col items-center justify-center p-8 text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-orange-100 text-[#F37021] flex items-center justify-center shadow-lg">
+                  <Lock className="w-8 h-8" />
+                </div>
+                <div className="max-w-md space-y-1">
+                  <h3 className="text-xl font-extrabold text-[#002D56]">Nội dung dành riêng cho thành viên</h3>
+                  <p className="text-xs sm:text-sm text-gray-500">
+                    Vui lòng đăng nhập bằng tài khoản Email (@fpt.edu.vn hoặc cá nhân) để mở khóa toàn bộ {totalPages} trang học tập và làm bài tập trắc nghiệm đính kèm.
+                  </p>
+                </div>
+                <button
+                  onClick={() =>
+                    requireAuth(
+                      () => {},
+                      `Đăng nhập Email để tiếp tục đọc trang ${currentPage} của tài liệu "${activeReaderDoc.title}"`
+                    )
+                  }
+                  className="px-6 py-3 rounded-2xl bg-[#F37021] hover:bg-[#e06216] text-white font-bold text-sm shadow-lg shadow-orange-500/30 transition-all cursor-pointer"
+                >
+                  Đăng nhập bằng Email ngay
+                </button>
+              </div>
+            )}
 
             {/* Footer of the sheet */}
             <div className="mt-12 pt-4 border-t border-dashed flex justify-between items-center text-xs opacity-50 font-sans">
               <span>Bản quyền học liệu thuộc về FPT Education</span>
-              <span>Lớp {activeReaderDoc.grade} • Môn Lịch sử</span>
+              <span>Khối {activeReaderDoc.grade} • Môn Lịch sử</span>
             </div>
           </div>
         </main>
       </div>
 
       {/* Bottom Floating Page Nav for Mobile */}
-      <footer className="sm:hidden h-12 bg-slate-900 border-t border-slate-800 flex items-center justify-around text-white px-4 text-xs">
+      <footer className="sm:hidden h-12 bg-[#002D56] border-t border-white/10 flex items-center justify-around text-white px-4 text-xs">
         <button
           onClick={handlePrevPage}
           disabled={currentPage <= 1}
-          className="flex items-center space-x-1 disabled:opacity-30"
+          className="flex items-center space-x-1 disabled:opacity-30 cursor-pointer"
         >
           <ChevronLeft className="w-4 h-4" />
           <span>Trang trước</span>
         </button>
-        <span className="font-bold text-orange-400">
+        <span className="font-bold text-[#F37021]">
           {currentPage} / {totalPages}
         </span>
         <button
           onClick={handleNextPage}
-          disabled={currentPage >= totalPages}
-          className="flex items-center space-x-1 disabled:opacity-30"
+          className="flex items-center space-x-1 cursor-pointer"
         >
           <span>Trang sau</span>
           <ChevronRight className="w-4 h-4" />

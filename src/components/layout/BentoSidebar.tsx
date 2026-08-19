@@ -12,6 +12,7 @@ import {
   LogOut,
   PlusCircle,
   Home,
+  Newspaper,
 } from 'lucide-react';
 
 interface BentoSidebarProps {
@@ -37,6 +38,7 @@ export const BentoSidebar: React.FC<BentoSidebarProps> = ({ onCloseMobile }) => 
   const navItems = [
     { label: 'Trang chủ', view: 'home' as AppView, icon: <Home className="w-5 h-5" /> },
     { label: 'Thư viện', view: 'library' as AppView, icon: <LayoutGrid className="w-5 h-5" /> },
+    { label: 'Bảng tin Lịch sử', view: 'newsfeed' as AppView, icon: <Newspaper className="w-5 h-5" /> },
     { label: 'Dòng thời gian', view: 'timeline' as AppView, icon: <Clock className="w-5 h-5" /> },
     { label: 'Chủ đề', view: 'categories' as AppView, icon: <GraduationCap className="w-5 h-5" /> },
     { label: 'Tủ sách cá nhân', view: 'personal' as AppView, icon: <Bookmark className="w-5 h-5" /> },
@@ -50,7 +52,7 @@ export const BentoSidebar: React.FC<BentoSidebarProps> = ({ onCloseMobile }) => 
       {/* Brand Icon Logo */}
       <button
         onClick={() => handleNav(currentUser ? 'home' : 'landing')}
-        className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center p-2 shadow-md hover:scale-105 transition-transform group focus:outline-none"
+        className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center p-2 shadow-md hover:scale-105 transition-transform group focus:outline-none cursor-pointer"
         title="FPT History Library"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="#F37021" strokeWidth="2.5" className="w-full h-full">
@@ -68,7 +70,7 @@ export const BentoSidebar: React.FC<BentoSidebarProps> = ({ onCloseMobile }) => 
               key={item.view}
               id={`sidebar-nav-${item.view}`}
               onClick={() => handleNav(item.view)}
-              className={`p-3 rounded-2xl transition-all relative group flex items-center justify-center ${
+              className={`p-3 rounded-2xl transition-all relative group flex items-center justify-center cursor-pointer ${
                 isActive
                   ? 'bg-white/20 text-white shadow-inner font-bold'
                   : 'hover:bg-white/10 text-white/70 hover:text-white'
@@ -88,7 +90,7 @@ export const BentoSidebar: React.FC<BentoSidebarProps> = ({ onCloseMobile }) => 
         {currentUser?.role === 'teacher' && (
           <button
             onClick={() => handleNav('teacher')}
-            className={`p-3 rounded-2xl transition-all ${
+            className={`p-3 rounded-2xl transition-all cursor-pointer ${
               currentView === 'teacher' ? 'bg-blue-600 text-white' : 'text-blue-300 hover:bg-white/10'
             }`}
             title="Cổng Giáo viên"
@@ -101,8 +103,8 @@ export const BentoSidebar: React.FC<BentoSidebarProps> = ({ onCloseMobile }) => 
         {currentUser?.role === 'admin' && (
           <button
             onClick={() => handleNav('admin')}
-            className={`p-3 rounded-2xl transition-all ${
-              currentView === 'admin' ? 'bg-purple-600 text-white' : 'text-purple-300 hover:bg-white/10'
+            className={`p-3 rounded-2xl transition-all cursor-pointer ${
+              currentView === 'admin' ? 'bg-[#F37021] text-white' : 'text-orange-300 hover:bg-white/10'
             }`}
             title="Bảng Quản trị"
           >
@@ -118,7 +120,7 @@ export const BentoSidebar: React.FC<BentoSidebarProps> = ({ onCloseMobile }) => 
             setAiPromptPreset('Tóm tắt các sự kiện trọng tâm Lịch sử 12');
             setIsAIModalOpen(true);
           }}
-          className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#F37021] to-amber-500 text-white flex items-center justify-center shadow-lg hover:scale-105 transition-all"
+          className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#F37021] to-amber-500 text-white flex items-center justify-center shadow-lg hover:scale-105 transition-all cursor-pointer"
           title="Trợ lý AI History"
         >
           <Sparkles className="w-5 h-5 animate-pulse" />
@@ -130,7 +132,7 @@ export const BentoSidebar: React.FC<BentoSidebarProps> = ({ onCloseMobile }) => 
         {currentUser ? (
           <button
             onClick={() => switchRole('guest')}
-            className="p-3 text-white/40 hover:text-white hover:bg-white/10 rounded-2xl transition-colors"
+            className="p-3 text-white/40 hover:text-white hover:bg-white/10 rounded-2xl transition-colors cursor-pointer"
             title="Đăng xuất / Quay về Landing Page"
           >
             <LogOut className="w-5 h-5" />
@@ -138,7 +140,7 @@ export const BentoSidebar: React.FC<BentoSidebarProps> = ({ onCloseMobile }) => 
         ) : (
           <button
             onClick={() => setIsAuthModalOpen(true)}
-            className="p-3 text-white/60 hover:text-white hover:bg-white/10 rounded-2xl transition-colors"
+            className="p-3 text-white/60 hover:text-white hover:bg-white/10 rounded-2xl transition-colors cursor-pointer"
             title="Đăng nhập"
           >
             <UserCheck className="w-5 h-5" />

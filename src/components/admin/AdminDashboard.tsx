@@ -16,13 +16,31 @@ import {
   Unlock,
   Sparkles,
   TrendingUp,
+  Upload,
+  PlusCircle,
+  Newspaper,
+  Pin,
+  Trash2,
 } from 'lucide-react';
-import { User, UserRole } from '../../types';
+import { User, UserRole, HistoryPost } from '../../types';
 
 export const AdminDashboard: React.FC = () => {
-  const { documents, updateDocumentStatus, deleteDocument, setActiveDetailDoc, showToast } = useApp();
+  const {
+    documents,
+    posts,
+    updateDocumentStatus,
+    deleteDocument,
+    deletePost,
+    togglePinPost,
+    setActiveDetailDoc,
+    setActivePostDetail,
+    setIsAdminUploadModalOpen,
+    setIsCreatePostModalOpen,
+    setCurrentView,
+    showToast,
+  } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'docs' | 'users' | 'moderation'>('moderation');
+  const [activeTab, setActiveTab] = useState<'moderation' | 'docs' | 'posts' | 'users'>('moderation');
   const [usersList, setUsersList] = useState<User[]>(INITIAL_USERS);
   const [adminSearch, setAdminSearch] = useState('');
 
@@ -48,62 +66,85 @@ export const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div id="admin-dashboard" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div id="admin-dashboard" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-in fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 pb-5">
         <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-md">
+          <div className="w-12 h-12 rounded-2xl bg-[#002D56] text-[#F37021] flex items-center justify-center shadow-md">
             <ShieldAlert className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                Bảng Quản trị Hệ thống
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#002D56] tracking-tight">
+                Bảng Quản trị FPT History Library
               </h1>
-              <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 text-xs font-bold">
+              <span className="px-2 py-0.5 rounded-md bg-orange-100 text-[#F37021] text-xs font-bold">
                 Admin Console
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-slate-500">
-              Kiểm duyệt học liệu số, phân quyền người dùng và quản lý vận hành FPT History Library
+            <p className="text-xs sm:text-sm text-gray-500">
+              Kiểm duyệt học liệu số THCS & THPT, quản lý bảng tin và phân quyền người dùng
             </p>
           </div>
+        </div>
+
+        {/* Quick Admin Actions */}
+        <div className="flex items-center space-x-3 flex-wrap gap-y-2">
+          <button
+            id="admin-upload-doc-btn"
+            onClick={() => setIsAdminUploadModalOpen(true)}
+            className="px-4 py-2.5 rounded-2xl bg-[#F37021] hover:bg-[#e06216] text-white text-xs font-bold flex items-center space-x-2 shadow-md shadow-orange-500/20 transition-all cursor-pointer"
+          >
+            <Upload className="w-4 h-4" />
+            <span>Tải lên học liệu mới</span>
+          </button>
+
+          <button
+            id="admin-create-post-btn"
+            onClick={() => setIsCreatePostModalOpen(true)}
+            className="px-4 py-2.5 rounded-2xl bg-[#002D56] hover:bg-[#002242] text-white text-xs font-bold flex items-center space-x-2 shadow-md transition-all cursor-pointer"
+          >
+            <Newspaper className="w-4 h-4" />
+            <span>Đăng bài lên Bảng tin</span>
+          </button>
         </div>
       </div>
 
       {/* Analytics Overview Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
-          <div className="text-xs font-semibold text-slate-400 uppercase">Tổng tài liệu thư viện</div>
-          <div className="text-3xl font-black text-slate-900">{documents.length}</div>
-          <div className="text-[11px] text-purple-600 font-medium">Học liệu GDPT 2018</div>
+        <div className="p-5 rounded-3xl bg-white border border-gray-100 shadow-xs space-y-1">
+          <div className="text-xs font-semibold text-gray-400 uppercase">Tổng tài liệu thư viện</div>
+          <div className="text-3xl font-black text-[#002D56]">{documents.length}</div>
+          <div className="text-[11px] text-[#F37021] font-bold">Khối THCS & THPT (GDPT 2018)</div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
-          <div className="text-xs font-semibold text-slate-400 uppercase">Tài liệu chờ kiểm duyệt</div>
-          <div className="text-3xl font-black text-amber-600">{pendingDocs.length}</div>
-          <div className="text-[11px] text-amber-600 font-medium">Cần xử lý phê duyệt</div>
+        <div className="p-5 rounded-3xl bg-white border border-gray-100 shadow-xs space-y-1">
+          <div className="text-xs font-semibold text-gray-400 uppercase">Bài viết bảng tin</div>
+          <div className="text-3xl font-black text-[#F37021]">{posts.length}</div>
+          <div className="text-[11px] text-gray-500 font-medium">Thông báo & Thảo luận sôi nổi</div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
-          <div className="text-xs font-semibold text-slate-400 uppercase">Lượt xem toàn hệ thống</div>
+        <div className="p-5 rounded-3xl bg-white border border-gray-100 shadow-xs space-y-1">
+          <div className="text-xs font-semibold text-gray-400 uppercase">Lượt xem toàn hệ thống</div>
           <div className="text-3xl font-black text-blue-600">{totalViews.toLocaleString()}</div>
-          <div className="text-[11px] text-emerald-600 font-medium">↑ 18.5% so với tháng trước</div>
+          <div className="text-[11px] text-emerald-600 font-medium">↑ 24.5% tương tác học tập</div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
-          <div className="text-xs font-semibold text-slate-400 uppercase">Tổng người dùng kích hoạt</div>
-          <div className="text-3xl font-black text-purple-600">3,420</div>
-          <div className="text-[11px] text-slate-400">Học sinh & Giáo viên THPT</div>
+        <div className="p-5 rounded-3xl bg-white border border-gray-100 shadow-xs space-y-1">
+          <div className="text-xs font-semibold text-gray-400 uppercase">Tài liệu chờ duyệt</div>
+          <div className="text-3xl font-black text-amber-600">{pendingDocs.length}</div>
+          <div className="text-[11px] text-amber-600 font-medium">Cần xử lý kiểm duyệt</div>
         </div>
       </div>
 
       {/* Admin Tabs */}
-      <div className="flex border-b border-slate-200 space-x-6 text-sm font-semibold">
+      <div className="flex border-b border-gray-200 space-x-6 text-xs sm:text-sm font-bold overflow-x-auto pb-1 scrollbar-none">
         <button
           onClick={() => setActiveTab('moderation')}
-          className={`pb-3 flex items-center space-x-2 border-b-2 transition-all ${
-            activeTab === 'moderation' ? 'border-purple-600 text-purple-700' : 'border-transparent text-slate-500 hover:text-slate-900'
+          className={`pb-3 flex items-center space-x-2 border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+            activeTab === 'moderation'
+              ? 'border-[#F37021] text-[#F37021]'
+              : 'border-transparent text-gray-500 hover:text-[#002D56]'
           }`}
         >
           <Clock className="w-4 h-4" />
@@ -112,8 +153,10 @@ export const AdminDashboard: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('docs')}
-          className={`pb-3 flex items-center space-x-2 border-b-2 transition-all ${
-            activeTab === 'docs' ? 'border-purple-600 text-purple-700' : 'border-transparent text-slate-500 hover:text-slate-900'
+          className={`pb-3 flex items-center space-x-2 border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+            activeTab === 'docs'
+              ? 'border-[#F37021] text-[#F37021]'
+              : 'border-transparent text-gray-500 hover:text-[#002D56]'
           }`}
         >
           <FileText className="w-4 h-4" />
@@ -121,9 +164,23 @@ export const AdminDashboard: React.FC = () => {
         </button>
 
         <button
+          onClick={() => setActiveTab('posts')}
+          className={`pb-3 flex items-center space-x-2 border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+            activeTab === 'posts'
+              ? 'border-[#F37021] text-[#F37021]'
+              : 'border-transparent text-gray-500 hover:text-[#002D56]'
+          }`}
+        >
+          <Newspaper className="w-4 h-4" />
+          <span>Quản lý Bảng tin ({posts.length})</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('users')}
-          className={`pb-3 flex items-center space-x-2 border-b-2 transition-all ${
-            activeTab === 'users' ? 'border-purple-600 text-purple-700' : 'border-transparent text-slate-500 hover:text-slate-900'
+          className={`pb-3 flex items-center space-x-2 border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+            activeTab === 'users'
+              ? 'border-[#F37021] text-[#F37021]'
+              : 'border-transparent text-gray-500 hover:text-[#002D56]'
           }`}
         >
           <Users className="w-4 h-4" />
@@ -133,14 +190,14 @@ export const AdminDashboard: React.FC = () => {
 
       {/* Tab: Moderation Queue */}
       {activeTab === 'moderation' && (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
-          <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-            <h2 className="font-bold text-slate-900 text-base">Tài liệu cần phê duyệt nội dung</h2>
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-xs overflow-hidden">
+          <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+            <h2 className="font-bold text-[#002D56] text-sm sm:text-base">Tài liệu cần phê duyệt nội dung</h2>
             <span className="text-xs text-amber-600 font-bold">{pendingDocs.length} tài liệu chờ</span>
           </div>
 
           {pendingDocs.length > 0 ? (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-gray-100">
               {pendingDocs.map((doc) => (
                 <div key={doc.id} className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex items-start space-x-4">
@@ -150,35 +207,35 @@ export const AdminDashboard: React.FC = () => {
                         <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-800">
                           {doc.type}
                         </span>
-                        <span className="text-xs text-slate-400">Lớp {doc.grade} • Tác giả: {doc.authorName}</span>
+                        <span className="text-xs text-gray-400">Lớp {doc.grade} • Tác giả: {doc.authorName}</span>
                       </div>
                       <h3
                         onClick={() => setActiveDetailDoc(doc)}
-                        className="font-bold text-sm text-slate-900 hover:text-purple-600 cursor-pointer"
+                        className="font-bold text-sm text-[#002D56] hover:text-[#F37021] cursor-pointer"
                       >
                         {doc.title}
                       </h3>
-                      <p className="text-xs text-slate-500 line-clamp-1">{doc.description}</p>
+                      <p className="text-xs text-gray-500 line-clamp-1">{doc.description}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center space-x-2 self-end sm:self-auto shrink-0">
                     <button
                       onClick={() => setActiveDetailDoc(doc)}
-                      className="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50"
+                      className="px-3 py-1.5 rounded-xl border border-gray-200 text-gray-700 text-xs font-semibold hover:bg-gray-50 cursor-pointer"
                     >
                       Xem nội dung
                     </button>
                     <button
                       onClick={() => handleRejectDoc(doc.id)}
-                      className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold flex items-center space-x-1"
+                      className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold flex items-center space-x-1 cursor-pointer"
                     >
                       <XCircle className="w-3.5 h-3.5" />
                       <span>Từ chối</span>
                     </button>
                     <button
                       onClick={() => handleApproveDoc(doc.id)}
-                      className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center space-x-1 shadow-xs"
+                      className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center space-x-1 shadow-xs cursor-pointer"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>Duyệt & Công khai</span>
@@ -188,7 +245,7 @@ export const AdminDashboard: React.FC = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 text-xs text-slate-400 space-y-2">
+            <div className="text-center py-12 text-xs text-gray-400 space-y-2">
               <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
               <div>Tất cả tài liệu đã được kiểm duyệt hoàn tất!</div>
             </div>
@@ -198,50 +255,139 @@ export const AdminDashboard: React.FC = () => {
 
       {/* Tab: All Documents */}
       {activeTab === 'docs' && (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-xs overflow-hidden space-y-4 p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h3 className="font-bold text-[#002D56] text-sm">Danh mục tài liệu toàn thư viện ({documents.length})</h3>
+            <button
+              onClick={() => setIsAdminUploadModalOpen(true)}
+              className="px-4 py-2 bg-[#F37021] text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 self-start cursor-pointer"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>Tải tài liệu mới</span>
+            </button>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 font-semibold uppercase border-b border-slate-100">
+              <thead className="bg-gray-50 text-gray-500 font-semibold uppercase border-b border-gray-100">
                 <tr>
-                  <th className="p-4">Tài liệu</th>
-                  <th className="p-4">Tác giả</th>
-                  <th className="p-4">Khối / Thể loại</th>
-                  <th className="p-4">Lượt xem / Tải</th>
-                  <th className="p-4">Trạng thái</th>
-                  <th className="p-4 text-right">Xử lý</th>
+                  <th className="p-3">Tài liệu</th>
+                  <th className="p-3">Tác giả</th>
+                  <th className="p-3">Khối / Thể loại</th>
+                  <th className="p-3">Lượt xem / Tải</th>
+                  <th className="p-3">Trạng thái</th>
+                  <th className="p-3 text-right">Xử lý</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-gray-100">
                 {documents.map((doc) => (
-                  <tr key={doc.id} className="hover:bg-slate-50/80">
-                    <td className="p-4 max-w-xs font-bold text-slate-900 truncate">
+                  <tr key={doc.id} className="hover:bg-gray-50/80">
+                    <td className="p-3 max-w-xs font-bold text-[#002D56] truncate">
                       {doc.title}
                     </td>
-                    <td className="p-4 text-slate-600">{doc.authorName}</td>
-                    <td className="p-4 text-slate-600">Lớp {doc.grade} ({doc.type})</td>
-                    <td className="p-4 text-slate-600 font-mono">
+                    <td className="p-3 text-gray-600">{doc.authorName}</td>
+                    <td className="p-3 text-gray-600">Lớp {doc.grade} ({doc.type})</td>
+                    <td className="p-3 text-gray-600 font-mono">
                       {doc.viewCount.toLocaleString()} / {doc.downloadCount.toLocaleString()}
                     </td>
-                    <td className="p-4">
+                    <td className="p-3">
                       <span
                         className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
                           doc.status === 'published'
                             ? 'bg-emerald-100 text-emerald-800'
                             : doc.status === 'pending'
                             ? 'bg-amber-100 text-amber-800'
-                            : 'bg-slate-100 text-slate-600'
+                            : 'bg-gray-100 text-gray-600'
                         }`}
                       >
                         {doc.status}
                       </span>
                     </td>
-                    <td className="p-4 text-right space-x-2">
+                    <td className="p-3 text-right space-x-2">
+                      <button
+                        onClick={() => setActiveDetailDoc(doc)}
+                        className="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-[11px] font-semibold cursor-pointer"
+                      >
+                        Xem
+                      </button>
                       <button
                         onClick={() => deleteDocument(doc.id)}
-                        className="p-1 rounded text-slate-400 hover:text-rose-600"
+                        className="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded text-[11px] font-semibold cursor-pointer"
                         title="Xóa tài liệu"
                       >
-                        ✕
+                        Xóa
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Tab: Posts Management */}
+      {activeTab === 'posts' && (
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-xs overflow-hidden space-y-4 p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h3 className="font-bold text-[#002D56] text-sm">Danh sách bài viết Bảng tin Lịch sử ({posts.length})</h3>
+            <button
+              onClick={() => setIsCreatePostModalOpen(true)}
+              className="px-4 py-2 bg-[#F37021] text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 self-start cursor-pointer"
+            >
+              <PlusCircle className="w-3.5 h-3.5" />
+              <span>Đăng bài mới</span>
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-gray-50 text-gray-500 font-semibold uppercase border-b border-gray-100">
+                <tr>
+                  <th className="p-3">Tiêu đề bài viết</th>
+                  <th className="p-3">Tác giả</th>
+                  <th className="p-3">Chuyên mục</th>
+                  <th className="p-3">Tương tác</th>
+                  <th className="p-3">Ghim</th>
+                  <th className="p-3 text-right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {posts.map((post) => (
+                  <tr key={post.id} className="hover:bg-gray-50/80">
+                    <td className="p-3 max-w-sm font-bold text-[#002D56] truncate">
+                      {post.title}
+                    </td>
+                    <td className="p-3 text-gray-600">{post.authorName}</td>
+                    <td className="p-3 text-gray-600 uppercase text-[10px] font-bold">
+                      {post.category}
+                    </td>
+                    <td className="p-3 text-gray-600">
+                      ❤️ {post.likesCount} • 💬 {post.commentsCount}
+                    </td>
+                    <td className="p-3">
+                      <button
+                        onClick={() => togglePinPost(post.id)}
+                        className={`p-1.5 rounded-lg text-xs font-bold flex items-center space-x-1 cursor-pointer ${
+                          post.isPinned ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-500'
+                        }`}
+                      >
+                        <Pin className="w-3.5 h-3.5" />
+                        <span>{post.isPinned ? 'Đã ghim' : 'Chưa ghim'}</span>
+                      </button>
+                    </td>
+                    <td className="p-3 text-right space-x-2">
+                      <button
+                        onClick={() => setActivePostDetail(post)}
+                        className="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-[#002D56] rounded text-[11px] font-semibold cursor-pointer"
+                      >
+                        Chi tiết
+                      </button>
+                      <button
+                        onClick={() => deletePost(post.id)}
+                        className="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded text-[11px] font-semibold cursor-pointer"
+                      >
+                        Xóa
                       </button>
                     </td>
                   </tr>
@@ -254,10 +400,10 @@ export const AdminDashboard: React.FC = () => {
 
       {/* Tab: Users Management */}
       {activeTab === 'users' && (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 font-semibold uppercase border-b border-slate-100">
+              <thead className="bg-gray-50 text-gray-500 font-semibold uppercase border-b border-gray-100">
                 <tr>
                   <th className="p-4">Người dùng</th>
                   <th className="p-4">Email</th>
@@ -266,17 +412,17 @@ export const AdminDashboard: React.FC = () => {
                   <th className="p-4 text-right">Phân quyền</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-gray-100">
                 {usersList.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-50/80">
+                  <tr key={u.id} className="hover:bg-gray-50/80">
                     <td className="p-4">
                       <div className="flex items-center space-x-3">
                         <img src={u.avatar} alt={u.name} className="w-8 h-8 rounded-full object-cover" />
-                        <span className="font-bold text-slate-900">{u.name}</span>
+                        <span className="font-bold text-[#002D56]">{u.name}</span>
                       </div>
                     </td>
-                    <td className="p-4 font-mono text-slate-600">{u.email}</td>
-                    <td className="p-4 text-slate-600">{u.school || 'THPT FPT'}</td>
+                    <td className="p-4 font-mono text-gray-600">{u.email}</td>
+                    <td className="p-4 text-gray-600">{u.school || 'THPT FPT'}</td>
                     <td className="p-4">
                       <span
                         className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
@@ -294,7 +440,7 @@ export const AdminDashboard: React.FC = () => {
                       <select
                         value={u.role}
                         onChange={(e) => handleToggleUserRole(u.id, e.target.value as UserRole)}
-                        className="p-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-white"
+                        className="p-1.5 rounded-lg text-xs font-semibold border border-gray-200 bg-white cursor-pointer"
                       >
                         <option value="student">Học sinh</option>
                         <option value="teacher">Giáo viên Lịch sử</option>

@@ -148,3 +148,41 @@ export interface LibraryFilterState {
   hasAnswerKeyOnly: boolean;
   sortBy: 'newest' | 'views' | 'downloads' | 'rating';
 }
+
+export type PostCategory = 'announcement' | 'history_fact' | 'academic' | 'exam_tips' | 'discussion';
+
+export interface PostComment {
+  id: string;
+  postId: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar?: string;
+  authorRole: UserRole;
+  content: string;
+  createdAt: string;
+  likesCount: number;
+  isLiked?: boolean;
+}
+
+export interface HistoryPost {
+  id: string;
+  title: string;
+  content: string;
+  category: PostCategory;
+  grade?: GradeLevel;
+  authorId: string;
+  authorName: string;
+  authorRole: UserRole;
+  authorAvatar?: string;
+  coverImage?: string;
+  attachedDocIds?: string[];
+  tags: string[];
+  isPinned?: boolean;
+  likesCount: number;
+  commentsCount: number;
+  viewsCount: number;
+  comments: PostComment[];
+  createdAt: string;
+  updatedAt?: string;
+}
+
