@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { VietnamThemeSwitcher } from '../theme/VietnamThemeSwitcher';
 import {
   Search,
   Sparkles,
@@ -75,6 +76,9 @@ export const BentoHeader: React.FC<BentoHeaderProps> = ({ onToggleMobileSidebar 
 
       {/* Right Controls */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        {/* Vietnam History Theme Selector */}
+        <VietnamThemeSwitcher />
+
         {/* AI Assistant Quick Button */}
         <button
           onClick={() => {

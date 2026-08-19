@@ -186,3 +186,29 @@ export interface HistoryPost {
   updatedAt?: string;
 }
 
+export type HistoryThemeKey = 'hao-khi-dong-a' | 'son-ha-xanh' | 'fpt-heritage';
+
+export interface VietnamHistoricalEra {
+  id: string;
+  name: string;
+  period: string;
+  dynasties: string;
+  description: string;
+  icon: string;
+  color: string;
+  bannerImage: string;
+  keyEvents: string[];
+  keyFigures: string[];
+  docCategory: DocumentCategory;
+}
+
+export interface VietnamHistoryQuote {
+  id: string;
+  quote: string;
+  originalText?: string;
+  author: string;
+  year: string;
+  context: string;
+  source: string;
+}
+

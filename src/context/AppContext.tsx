@@ -13,14 +13,17 @@ import {
   DocumentCategory,
   HistoryPost,
   PostComment,
+  HistoryThemeKey,
 } from '../types';
 import { INITIAL_USERS, INITIAL_DOCUMENTS, INITIAL_COLLECTIONS } from '../data/mockData';
 import { TIMELINE_EVENTS } from '../data/timelineData';
 import { INITIAL_POSTS } from '../data/newsfeedData';
+import { THEME_CONFIGS } from '../data/vietnamHistoryTheme';
 
 export type AppView = 
   | 'home' 
   | 'library' 
+  | 'ebooks'
   | 'newsfeed'
   | 'timeline' 
   | 'categories' 
@@ -41,6 +44,8 @@ interface AppContextType {
   switchRole: (role: UserRole) => void;
   currentView: AppView;
   setCurrentView: (view: AppView) => void;
+  currentTheme: HistoryThemeKey;
+  setCurrentTheme: (theme: HistoryThemeKey) => void;
   
   // Data
   documents: DocumentItem[];
@@ -145,6 +150,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
     return INITIAL_USERS[0]; // Default logged-in user
   });
+
+  // Vietnam History Theme state
+  const [currentTheme, setCurrentTheme] = useState<HistoryThemeKey>(() => {
+    const saved = localStorage.getItem('fpt_history_theme');
+    if (saved && (saved === 'hao-khi-dong-a' || saved === 'son-ha-xanh' || saved === 'fpt-heritage')) {
+      return saved as HistoryThemeKey;
+    }
+    return 'hao-khi-dong-a'; // Default Vietnamese History Heritage theme
+  });
+
+  useEffect(() => {
+    localStorage.setItem('fpt_history_theme', currentTheme);
+  }, [currentTheme]);
 
   // Current view
   const [currentView, setCurrentView] = useState<AppView>(() => {
@@ -732,6 +750,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       switchRole,
       currentView,
       setCurrentView,
+      currentTheme,
+      setCurrentTheme,
       documents,
       posts,
       collections,
@@ -806,6 +826,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     [
       currentUser,
       currentView,
+      currentTheme,
       documents,
       posts,
       collections,

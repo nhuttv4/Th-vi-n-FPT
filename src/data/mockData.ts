@@ -763,6 +763,166 @@ II. BƯỚC NGOẶT QUYẾT ĐỊNH NĂM 1920
     hasAnswerKey: false,
     createdAt: '2025-09-28',
     updatedAt: '2025-09-28',
+  },
+  {
+    id: 'doc_15',
+    title: 'Sách Điện Tử: Đại Việt Sử Ký Toàn Thư (Bản số hóa & Tuyển chọn tư liệu chính sử)',
+    description: 'Bộ quốc sử đồ sộ bậc nhất của dân tộc ghi chép toàn diện từ thời Hồng Bàng, dựng nước Văn Lang qua các triều đại Đinh, Tiền Lê, Lý, Trần, Hậu Lê. Có chú giải thuật ngữ và bản đồ cổ.',
+    type: 'ebook',
+    category: 'vietnam',
+    grade: 'all',
+    subject: 'Lịch sử Dân tộc',
+    difficulty: 'good',
+    authorId: 'u_admin_1',
+    authorName: 'Sử gia Ngô Sĩ Liên (Ban Tu thư FPT số hóa)',
+    authorRole: 'admin',
+    fileUrl: '/docs/dai-viet-su-ky-toan-thu-so-hoa.pdf',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=600&auto=format&fit=crop&q=80',
+    fileType: 'epub',
+    fileSize: '15.4 MB',
+    pagesCount: 380,
+    tags: ['Đại Việt Sử Ký Toàn Thư', 'Chính sử', 'Thời Lý - Trần', 'Hậu Lê', 'Sách tham khảo'],
+    status: 'published',
+    viewCount: 6890,
+    downloadCount: 3450,
+    likesCount: 980,
+    rating: 4.98,
+    hasAnswerKey: false,
+    createdAt: '2025-08-10',
+    updatedAt: '2025-11-15',
+    tableOfContents: [
+      { title: 'Kỷ Hồng Bàng Thị: Kinh Dương Vương, Lạc Long Quân & Hùng Vương', page: 1 },
+      { title: 'Kỷ Nhà Thục: An Dương Vương & Thành Cổ Loa', page: 15 },
+      { title: 'Kỷ Nhà Lý: Lý Thái Tổ Chiếu dời đô & Kháng Tống', page: 45 },
+      { title: 'Kỷ Nhà Trần: Ba lần đại phá quân Nguyên Mông', page: 95 },
+      { title: 'Kỷ Nhà Lê: Khởi nghĩa Lam Sơn & Bình Ngô Đại Cáo', page: 180 },
+    ],
+    pages: [
+      {
+        pageNumber: 1,
+        title: 'Lời Tựa và Kỷ Hồng Bàng Thị',
+        content: `ĐẠI VIỆT SỬ KÝ TOÀN THƯ - BẢN KỶ TOÀN THƯ
+Quốc sử viện tri thần Ngô Sĩ Liên phụng soạn.
+
+Xưa kia, họ Hồng Bàng khởi dựng nền móng quốc gia. Vua Đế Minh sinh ra Lộc Tục, phong làm Kinh Dương Vương, trị vì phương Nam, đặt quốc hiệu là Xích Quỷ. Kinh Dương Vương lấy con gái Động Đình Quân sinh ra Sùng Lãm, tức Lạc Long Quân.
+
+Lạc Long Quân lấy bà Âu Cơ, sinh ra bọc trăm trứng, nở thành trăm người con trai. Năm mươi người con theo mẹ lên núi, năm mươi người con theo cha xuống biển, cùng chia nhau cai quản non sông. Người con cả nối ngôi làm vua, hiệu là Hùng Vương, đặt tên nước là Văn Lang, thế truyền mười tám đời đều gọi là Hùng Vương.`,
+        keyTerms: ['Kinh Dương Vương', 'Lạc Long Quân', 'Âu Cơ', 'Hùng Vương', 'Nước Văn Lang'],
+      },
+      {
+        pageNumber: 2,
+        title: 'Chiếu Dời Đô (Thiên Đô Chiếu) - Năm 1010',
+        content: `THIÊN ĐÔ CHIẾU (Năm Canh Tuất 1010)
+Vua Lý Thái Tổ dụ rằng:
+
+"Xưa nhà Thương đến đời Bàn Canh năm lần dời đô, nhà Chu đến đời Thành Vương ba lần dời đô, há phải các vua đời Tam Đại ấy vì tư lợi riêng đâu? Chỉ vì muốn mưu tính việc lớn, chọn nơi trung tâm, mưu đồ nghiệp lớn cho con cháu muôn đời sau...
+
+Nay thành Đại La, kinh đô cũ của Cao Vương: Ở vào chính giữa đất trời, có thế rồng cuộn hổ ngồi, đúng ngôi nam bắc đông tây, tiện bề hướng nhìn sông dựa núi. Địa thế rộng mà bằng, đất đai cao mà sáng, dân cư khỏi chịu cảnh ngập lụt, muôn vật rất mực phong phú tốt tươi. Xem khắp đất Việt, duy có nơi ấy là thắng địa. Thật là chốn tụ hội trọng yếu của bốn phương đất nước, là kinh sư bậc nhất của đế vương muôn đời."`,
+        keyTerms: ['Thiên Đô Chiếu', 'Lý Thái Tổ', 'Thành Đại La', 'Thăng Long', 'Thế rồng cuộn hổ ngồi'],
+      }
+    ]
+  },
+  {
+    id: 'doc_16',
+    title: 'Sách Tham Khảo: Nghệ Thuật Quân Sự Thời Lý – Trần & Ba Lần Đại Phá Nguyên Mông',
+    description: 'Chuyên khảo quân sự và lịch sử Đại Việt: Phân tích tư tưởng "Tiên phát chế nhân" của Lý Thường Kiệt, chiến thuật "Vườn không nhà trống", Hội nghị Diên Hồng và các trận thủy chiến Bạch Đằng, Hàm Tử, Chương Dương.',
+    type: 'ebook',
+    category: 'revolution',
+    grade: 'all',
+    subject: 'Lịch sử Quân sự Việt Nam',
+    difficulty: 'good',
+    authorId: 'u_admin_1',
+    authorName: 'Viện Nghiên cứu Lịch sử & FPT Education',
+    authorRole: 'admin',
+    fileUrl: '/docs/nghe-thuat-quan-su-ly-tran.pdf',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1599839575945-a9e5af0c3fa5?w=600&auto=format&fit=crop&q=80',
+    fileType: 'pdf',
+    fileSize: '12.8 MB',
+    pagesCount: 165,
+    tags: ['Nghệ thuật quân sự', 'Hào khí Đông A', 'Thời Trần', 'Bạch Đằng 1288', 'Trần Hưng Đạo'],
+    status: 'published',
+    viewCount: 5420,
+    downloadCount: 2680,
+    likesCount: 820,
+    rating: 4.95,
+    hasAnswerKey: false,
+    createdAt: '2025-09-12',
+    updatedAt: '2025-11-05',
+    tableOfContents: [
+      { title: 'Chương 1: Tư tưởng quân sự Lý Thường Kiệt và trận đánh phòng ngự sông Như Nguyệt', page: 1 },
+      { title: 'Chương 2: Bối cảnh thế giới: Đế quốc Mông Cổ bành trướng Á - Âu', page: 35 },
+      { title: 'Chương 3: Kháng chiến lần 1 (1258): Đông Bộ Đầu quét sạch giặc Thát', page: 60 },
+      { title: 'Chương 4: Kháng chiến lần 2 (1285): Hịch Tướng Sĩ, Hội nghị Diên Hồng & Vạn Kiếp', page: 90 },
+      { title: 'Chương 5: Kháng chiến lần 3 (1287-1288): Trận quyết chiến chiến lược sông Bạch Đằng', page: 130 },
+    ],
+    pages: [
+      {
+        pageNumber: 1,
+        title: 'Hào Khí Đông A và Hội Nghị Diên Hồng',
+        content: `CHƯƠNG 4: HÀO KHÍ ĐÔNG A VÀ TINH THẦN ĐOÀN KẾT TOÀN DÂN
+
+Năm 1285, hơn 50 vạn quân Nguyên Mông do Thoát Hoan cầm đầu ồ ạt tràn vào xâm lược Đại Việt. Trước nguy cơ sống còn của non sông, Thượng hoàng Trần Thánh Tông và vua Trần Nhân Tông đã triệu tập Hội nghị Diên Hồng tại kinh thành Thăng Long, mời các bậc bô lão đại diện cho nhân dân khắp mọi miền đất nước về dự để hỏi kế đánh giặc.
+
+Khi vua hỏi: "Nên đánh hay nên hòa?", muôn người như một, các bô lão đã đồng thanh hô vang dậy đất: "ĐÁNH!".
+
+Hào khí Đông A (chữ "Trần" gồm bộ Phụ và chữ Đông, chữ A ghép lại) chính là kết tinh của lòng yêu nước nồng nàn, ý chí tự cường bất khuất và tinh thần đại đoàn kết quân dân: "Vua tôi đồng lòng, anh em hòa thuận, cả nước góp sức".`,
+        keyTerms: ['Hội nghị Diên Hồng', 'Hào khí Đông A', 'Nên đánh hay nên hòa', 'Trần Hưng Đạo', 'Vạn Kiếp']
+      }
+    ]
+  },
+  {
+    id: 'doc_17',
+    title: 'Sách Tham Khảo Luyện Thi 9+: Cẩm Nang Bứt Phá Điểm Cao Môn Lịch Sử GDPT 2018',
+    description: 'Tài liệu độc quyền của Tổ Chuyên môn Lịch sử FPT Schools: Bí quyết phân tích từ khóa, phương pháp so sánh các hiệp định (Sơ bộ, Giơ-ne-vơ, Pa-ri), ma trận đề thi tốt nghiệp THPT và 500 câu hỏi vận dụng cao có giải mã bẫy trắc nghiệm.',
+    type: 'ebook',
+    category: 'thpt_prep',
+    grade: '12',
+    subject: 'Luyện thi THPT Quốc gia',
+    difficulty: 'advanced',
+    authorId: 'u_teacher_1',
+    authorName: 'Tổ Chuyên môn Lịch sử FPT Education',
+    authorRole: 'teacher',
+    fileUrl: '/docs/cam-nang-luyen-thi-lich-su-9-plus.pdf',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&auto=format&fit=crop&q=80',
+    fileType: 'pdf',
+    fileSize: '9.6 MB',
+    pagesCount: 148,
+    tags: ['Luyện thi 9+', 'GDPT 2018', 'Bí kíp trắc nghiệm', 'So sánh lịch sử', 'THPT 2026'],
+    status: 'published',
+    viewCount: 8940,
+    downloadCount: 4720,
+    likesCount: 1350,
+    rating: 4.96,
+    hasAnswerKey: true,
+    createdAt: '2025-10-20',
+    updatedAt: '2026-01-05',
+  },
+  {
+    id: 'doc_18',
+    title: 'Sách Điện Tử: Văn Minh Đại Việt – Từ Hoa Văn Trống Đồng Đến Biểu Tượng Rồng Thời Lý, Trần',
+    description: 'Ấn phẩm đồ họa đặc sắc khảo cứu các biểu trưng văn hóa Việt Nam: Hoa văn trống đồng Đông Sơn, hình tượng chim Lạc, rồng thời Lý uốn lượn ngậm ngọc, rồng thời Trần đao lửa và kiến trúc Chùa Một Cột, Hoàng thành Thăng Long.',
+    type: 'ebook',
+    category: 'civilization',
+    grade: 'all',
+    subject: 'Văn hóa & Di sản Dân tộc',
+    difficulty: 'medium',
+    authorId: 'u_admin_1',
+    authorName: 'Ban Di sản Văn hóa FPT Education',
+    authorRole: 'admin',
+    fileUrl: '/docs/van-minh-dai-viet-trong-dong-rong-ly.pdf',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1528127269322-539801943592?w=600&auto=format&fit=crop&q=80',
+    fileType: 'pdf',
+    fileSize: '18.2 MB',
+    pagesCount: 110,
+    tags: ['Trống đồng Đông Sơn', 'Chim Lạc', 'Rồng thời Lý', 'Rồng thời Trần', 'Văn hóa Đại Việt'],
+    status: 'published',
+    viewCount: 4210,
+    downloadCount: 1890,
+    likesCount: 760,
+    rating: 4.94,
+    hasAnswerKey: false,
+    createdAt: '2025-11-01',
+    updatedAt: '2025-11-01',
   }
 ];
 
