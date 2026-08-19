@@ -1,0 +1,6 @@
+{
+  "name": "FPT History Library",
+  "description": "Thư viện số Lịch sử hiện đại chuẩn FPT Education dành cho học sinh THCS & THPT, giáo viên với kho học liệu phong phú, trình đọc ebook/PDF, timeline sự kiện tương tác và trợ lý AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
